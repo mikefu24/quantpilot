@@ -6,7 +6,7 @@ import { renderAI } from './pages/ai.js';
 import { renderTrade } from './pages/trade.js';
 import { renderSettings } from './pages/settings.js';
 import { el } from './ui/components.js';
-import { log } from './core/store.js';
+import { log, getSettings, applyTheme } from './core/store.js';
 import './api.js'; // 挂载 window.qp 命名空间 API
 
 const TABS = [
@@ -43,6 +43,7 @@ tabbar.addEventListener('click', e => {
 });
 
 // 启动
+applyTheme(getSettings().theme);
 const initial = (location.hash || '#home').slice(1);
 log('QuantPilot 已启动 · 零依赖离线内核');
 nav(TABS.some(t => t.id === initial) ? initial : 'home');

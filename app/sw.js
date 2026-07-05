@@ -1,5 +1,5 @@
 // QuantPilot Service Worker —— 离线优先缓存
-const CACHE = 'quantpilot-v1';
+const CACHE = 'quantpilot-v2';
 const CORE = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',
   'src/main.js', 'src/api.js',

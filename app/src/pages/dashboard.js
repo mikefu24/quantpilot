@@ -2,13 +2,16 @@
 import { el, esc, sparkline } from '../ui/components.js';
 import { fetchQuotes, fetchKlines, fetchPolymarkets, DEFAULT_WATCHLIST } from '../data/feeds.js';
 import { paperBroker } from '../trade/paper.js';
-import { getSettings, fmt, getLogs, on } from '../core/store.js';
+import { getSettings, fmt, getLogs, on, cycleTheme, THEMES } from '../core/store.js';
+import { toast } from '../ui/components.js';
 
 export async function renderDashboard(root, nav) {
   const wl = getSettings().watchlist || DEFAULT_WATCHLIST;
   root.innerHTML = `
   <div class="page">
-    <div class="page-title">QuantPilot</div>
+    <div class="page-title">QuantPilot
+      <button class="theme-quick" id="db-theme" title="切换主题">🎨 ${(THEMES.find(t => t.id === getSettings().theme) || THEMES[0]).name}</button>
+    </div>
     <div class="page-sub">${new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })} · AI 驱动多市场交易终端</div>
 
     <div class="card" style="background:linear-gradient(135deg,rgba(10,132,255,.18),rgba(191,90,242,.14));border-color:rgba(10,132,255,.25)">
@@ -36,6 +39,12 @@ export async function renderDashboard(root, nav) {
       <div class="console" id="db-log"></div>
     </div>
   </div>`;
+
+  root.querySelector('#db-theme').addEventListener('click', e => {
+    const t = cycleTheme();
+    e.currentTarget.textContent = '🎨 ' + t.name;
+    toast('主题:' + t.name);
+  });
 
   const logBox = root.querySelector('#db-log');
   const renderLogs = () => {

@@ -1,6 +1,6 @@
 // 设置页
 import { toast } from '../ui/components.js';
-import { getSettings, saveSettings } from '../core/store.js';
+import { getSettings, saveSettings, THEMES, setTheme } from '../core/store.js';
 import { notify, requestLocalNotify } from '../trade/notify.js';
 
 export async function renderSettings(root) {
@@ -11,6 +11,19 @@ export async function renderSettings(root) {
   root.innerHTML = `
   <div class="page">
     <div class="page-title">设置</div>
+
+    <div class="card">
+      <div class="card-title">外观主题</div>
+      <div class="theme-grid" id="st-themes">
+        ${THEMES.map(t => `
+          <div class="theme-swatch ${s.theme === t.id ? 'on' : ''}" data-theme-id="${t.id}">
+            <div class="tw" style="background:${t.bg};display:flex;align-items:center;justify-content:center">
+              <span style="color:${t.fg};font-weight:800;font-size:15px">Aa</span>
+            </div>${t.name}
+          </div>`).join('')}
+      </div>
+      <div class="muted" style="margin-top:8px">护眼绿为经典豆沙绿低蓝光配色,适合长时间盯盘;首页右上角可快速切换。</div>
+    </div>
 
     <div class="card">
       <div class="card-title">交易模式</div>
@@ -67,6 +80,14 @@ export async function renderSettings(root) {
       ⚠️ 本软件仅供学习研究,不构成投资建议,交易风险自负
     </div>
   </div>`;
+
+  root.querySelector('#st-themes').addEventListener('click', e => {
+    const sw = e.target.closest('[data-theme-id]');
+    if (!sw) return;
+    setTheme(sw.dataset.themeId);
+    root.querySelectorAll('.theme-swatch').forEach(x => x.classList.toggle('on', x === sw));
+    toast('已切换主题:' + THEMES.find(t => t.id === sw.dataset.themeId).name);
+  });
 
   root.querySelector('#st-save').addEventListener('click', () => {
     const v = id => root.querySelector('#' + id).value.trim();

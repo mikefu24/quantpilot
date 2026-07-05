@@ -71,7 +71,7 @@ export function scoreRing(score, max = 5, label = '综合评分', color = '#0A84
   const R = 52, C = 2 * Math.PI * R;
   return `<div class="score-ring">
     <svg width="120" height="120" viewBox="0 0 120 120">
-      <circle cx="60" cy="60" r="${R}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9"/>
+      <circle cx="60" cy="60" r="${R}" fill="none" stroke="rgba(128,128,128,.22)" stroke-width="9"/>
       <circle cx="60" cy="60" r="${R}" fill="none" stroke="${color}" stroke-width="9" stroke-linecap="round"
         stroke-dasharray="${(C * pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 60 60)"/>
     </svg>

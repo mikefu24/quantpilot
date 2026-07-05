@@ -10,6 +10,13 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<script>
+// 首屏防闪烁:渲染前应用已保存主题
+try {
+  var __t = (JSON.parse(localStorage.getItem('qp.settings.v1')) || {}).theme;
+  if (__t) document.documentElement.dataset.theme = __t;
+} catch (e) {}
+</script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>

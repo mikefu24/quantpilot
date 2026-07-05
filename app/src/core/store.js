@@ -2,6 +2,7 @@
 const LS_SETTINGS = 'qp.settings.v1';
 
 const DEFAULTS = {
+  theme: 'dark', // dark | light | green | sepia
   liveTrading: false,
   activeBroker: 'qmt',
   qmtBridgeUrl: '', qmtBridgeToken: '',
@@ -27,6 +28,29 @@ export function saveSettings(patch) {
   try { localStorage.setItem(LS_SETTINGS, JSON.stringify(settings)); } catch { }
   emit('settings', settings);
   return settings;
+}
+
+// —— 主题 ——
+export const THEMES = [
+  { id: 'dark', name: '深邃黑', bg: '#0A0A0F', fg: '#F5F5F7' },
+  { id: 'light', name: '浅色', bg: '#F2F3F7', fg: '#1C1C1E' },
+  { id: 'green', name: '护眼绿', bg: '#CCE8CF', fg: '#1F3325' },
+  { id: 'sepia', name: '暖纸', bg: '#F3EAD7', fg: '#3B3226' },
+];
+export function applyTheme(id) {
+  const t = THEMES.find(x => x.id === id) || THEMES[0];
+  document.documentElement.dataset.theme = t.id;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = t.bg;
+  emit('theme', t.id);
+}
+export function setTheme(id) { saveSettings({ theme: id }); applyTheme(id); }
+export function cycleTheme() {
+  const cur = getSettings().theme || 'dark';
+  const i = THEMES.findIndex(t => t.id === cur);
+  const next = THEMES[(i + 1) % THEMES.length].id;
+  setTheme(next);
+  return THEMES.find(t => t.id === next);
 }
 
 // —— 轻量事件总线 ——

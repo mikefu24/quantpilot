@@ -25,6 +25,8 @@ jobs:
       - name: Run engine tests
         run: cd app && node --test tests/engine.test.mjs
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app   # 零依赖,无需构建,直接部署

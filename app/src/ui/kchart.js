@@ -1,9 +1,23 @@
 // ============ 零依赖 Canvas K线图 ============
 // 蜡烛 + 成交量 + MA5/20/60 + MACD 副图 + 十字光标
 import { sma, macd, closes } from '../engine/indicators.js';
+import { on } from '../core/store.js';
 
-const UP = '#FF453A', DOWN = '#30D158', GRID = 'rgba(255,255,255,.06)', TXT = 'rgba(245,245,247,.45)';
-const MA_COLORS = ['#FFD60A', '#0A84FF', '#BF5AF2'];
+const UP = '#FF453A', DOWN = '#30D158';
+const MA_COLORS = ['#E0A800', '#0A84FF', '#BF5AF2'];
+// 主题感知配色(从 CSS 变量实时读取)
+function themeColors() {
+  const cs = getComputedStyle(document.documentElement);
+  const v = (name, fb) => (cs.getPropertyValue(name) || '').trim() || fb;
+  return {
+    GRID: v('--chart-grid', 'rgba(255,255,255,.06)'),
+    TXT: v('--chart-text', 'rgba(245,245,247,.45)'),
+    TIP: v('--chart-tip', 'rgba(20,20,30,.92)'),
+    TIPTXT: v('--chart-tip-text', '#F5F5F7'),
+    UP: v('--up', UP),
+    DOWN: v('--down', DOWN),
+  };
+}
 
 export function createKChart(container, opts = {}) {
   const canvas = document.createElement('canvas');
@@ -25,6 +39,8 @@ export function createKChart(container, opts = {}) {
     ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
     const W = canvas.width / dpr, H = canvas.height / dpr;
     ctx2.clearRect(0, 0, W, H);
+    const TC = themeColors();
+    const UP = TC.UP, DOWN = TC.DOWN, GRID = TC.GRID, TXT = TC.TXT;
     const bars = state.bars;
     if (!bars.length) { ctx2.fillStyle = TXT; ctx2.font = '13px sans-serif'; ctx2.fillText('加载中…', W / 2 - 24, H / 2); return; }
 
@@ -136,14 +152,14 @@ export function createKChart(container, opts = {}) {
       const { cx } = state.cross;
       const i = Math.max(0, Math.min(slice.length - 1, Math.floor(cx / cw)));
       const b = slice[i];
-      ctx2.strokeStyle = 'rgba(255,255,255,.35)'; ctx2.setLineDash([4, 4]);
+      ctx2.strokeStyle = TXT; ctx2.setLineDash([4, 4]);
       ctx2.beginPath(); ctx2.moveTo(x(i), 0); ctx2.lineTo(x(i), H - 14); ctx2.stroke();
       ctx2.setLineDash([]);
       // 信息浮层
       const info = `${b.t}  开${fmtPx(b.o)} 高${fmtPx(b.h)} 低${fmtPx(b.l)} 收${fmtPx(b.c)}  ${((b.c / b.o - 1) * 100).toFixed(2)}%`;
       ctx2.font = '11px "SF Mono", Menlo, monospace';
       const tw = ctx2.measureText(info).width + 16;
-      ctx2.fillStyle = 'rgba(20,20,30,.92)';
+      ctx2.fillStyle = TC.TIP;
       roundRect(ctx2, Math.min(Math.max(4, x(i) - tw / 2), W - tw - 4), 4, tw, 22, 6);
       ctx2.fillStyle = b.c >= b.o ? UP : DOWN;
       ctx2.fillText(info, Math.min(Math.max(12, x(i) - tw / 2 + 8), W - tw + 4), 19);
@@ -171,12 +187,13 @@ export function createKChart(container, opts = {}) {
 
   const ro = new ResizeObserver(resize);
   ro.observe(container);
+  const offTheme = on('theme', () => draw());
   resize();
 
   return {
     setBars(bars, markers = []) { state.bars = bars; state.markers = markers; state.offset = 0; draw(); },
     setView(n) { state.view = n; draw(); },
-    destroy() { ro.disconnect(); canvas.remove(); },
+    destroy() { ro.disconnect(); offTheme(); canvas.remove(); },
   };
 }
 
