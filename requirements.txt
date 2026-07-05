@@ -1,0 +1,16 @@
+# —— 核心 ——
+aiohttp>=3.9            # 异步 HTTP：新闻/推特监听
+python-dotenv>=1.0      # 读取 .env
+PyYAML>=6.0             # 读取 config.yaml
+
+# —— 大模型（按需装其一或多个）——
+anthropic>=0.39         # Claude（默认 provider）
+openai>=1.40            # DeepSeek / OpenAI / 兼容协议模型（Agnes 等）
+
+# —— Polymarket 执行 ——
+py-clob-client>=0.17    # 官方 CLOB 客户端
+web3>=6.0               # Polygon 链上交互（授权/充值等，可选）
+
+# —— A股辅助数据 ——
+akshare>=1.14           # A股行情与财经快讯
+pandas>=2.0

@@ -1,0 +1,13 @@
+{
+  "name": "QuantPilot 智能交易终端",
+  "short_name": "QuantPilot",
+  "description": "AI 驱动多市场智能交易终端:A股/港股/美股/基金/Polymarket · 因子挖掘 · 机器学习 · 四大师投研",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0A0A0F",
+  "theme_color": "#0A0A0F",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "quantpilot",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "QuantPilot 智能交易终端 —— 零依赖离线 PWA + Tauri 桌面版",
+  "scripts": {
+    "test": "node --test tests/engine.test.mjs",
+    "serve": "python3 -m http.server 8080",
+    "tauri": "tauri"
+  }
+}

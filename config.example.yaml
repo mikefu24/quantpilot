@@ -1,0 +1,27 @@
+# 复制为 config.yaml。非敏感配置放这里；敏感信息（key/私钥）放 .env。
+llm_provider: claude
+llm_model: claude-sonnet-4-5
+llm_base_url: ""
+
+poll_interval_sec: 5
+
+# 目标事件市场（Polymarket 的 condition_id 或 slug），并写一句人类可读描述
+# 决策引擎会把它作为"市场问题"喂给大模型，描述越清晰判断越准。
+target_market_id: "Will X happen before 2027-01-01?"
+
+# 只处理命中这些关键词的新闻/推文（留空=全放行，噪音会更多）
+watch_keywords:
+  - fed
+  - rate cut
+  - election
+  - ceasefire
+
+risk:
+  max_slippage: 0.02        # 最大滑点（价格绝对值，0.02=2分）
+  max_spread: 0.05          # 价差超过则判定薄盘拒单
+  min_depth_shares: 50      # 限价内最少可成交份额，防插针
+  max_position_usd: 100     # 单市场最大敞口
+  max_order_usd: 25         # 单笔最大金额
+  min_edge: 0.08            # 模型概率相对市场价的最小优势
+  min_confidence: 0.65      # 模型最低置信度
+  cooldown_sec: 60          # 同一市场下单最小间隔
