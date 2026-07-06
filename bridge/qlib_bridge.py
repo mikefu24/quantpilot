@@ -39,6 +39,16 @@ app = Flask(__name__)
 STATE = {"ready": False, "pred": None, "err": None, "qlib_inited": False}
 
 
+@app.after_request
+def add_cors(resp):
+    """允许 QuantPilot(网页版/桌面版)跨域调用本地桥接"""
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    resp.headers["Access-Control-Allow-Private-Network"] = "true"
+    return resp
+
+
 def to_qlib_code(symbol: str) -> str:
     """sh600519 -> SH600519 / sz000001 -> SZ000001"""
     return symbol.upper() if symbol[:2].lower() in ("sh", "sz") else symbol

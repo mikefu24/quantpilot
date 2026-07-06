@@ -2,6 +2,7 @@
 import { esc, scoreRing, toast, mdToHtml } from '../ui/components.js';
 import { analyzeBuiltin, analyzeLLM } from '../ai/berkshire.js';
 import { fetchKlines, fetchQuotes, DEFAULT_WATCHLIST } from '../data/feeds.js';
+import { qlibConfigured, qlibSignal } from '../data/qlib.js';
 import { getSettings, fmt } from '../core/store.js';
 
 export async function renderAI(root) {
@@ -76,7 +77,25 @@ export async function renderAI(root) {
     <div class="card"><div class="card-title">证伪条件(触发即离场)</div>
       ${r.falsify.map(f => `<div style="padding:4px 0">🔻 ${f}</div>`).join('')}
       <hr class="hr"><div class="muted">${r.disclaimer}</div>
-    </div>`;
+    </div>
+    <div id="ai-qlib"></div>`;
+
+    // Qlib 后端评分(已配置时,异步附加)
+    if (qlibConfigured() && (sym.startsWith('sh') || sym.startsWith('sz'))) {
+      const box = out.querySelector('#ai-qlib');
+      box.innerHTML = '<div class="card muted">获取 Qlib 模型评分…</div>';
+      qlibSignal(sym).then(q => {
+        if (!box.isConnected) return;
+        box.innerHTML = q.ok ? `
+          <div class="card"><div class="card-title">Qlib 横截面评分 <span class="badge b-purple">Alpha158 + LGBM</span></div>
+            <div class="grid3">
+              <div class="kpi"><div class="v ${q.score > 0 ? 'pos' : 'neg'}">${q.score.toFixed(4)}</div><div class="l">模型评分</div></div>
+              <div class="kpi"><div class="v">${q.rank}/${q.universe}</div><div class="l">股票池排名</div></div>
+              <div class="kpi"><div class="v ${q.percentile > 70 ? 'pos' : q.percentile < 30 ? 'neg' : ''}">${q.percentile}%</div><div class="l">分位(越高越好)</div></div>
+            </div></div>`
+          : `<div class="card muted">Qlib:${esc(q.msg || '未就绪')}</div>`;
+      }).catch(e => { if (box.isConnected) box.innerHTML = `<div class="card muted">Qlib 后端不可达:${esc(e.message)}</div>`; });
+    }
   });
 
   root.querySelector('#ai-llm').addEventListener('click', async () => {

@@ -12,6 +12,7 @@ const DEFAULTS = {
   emailWebhook: '', emailTo: '',
   aiProvider: 'builtin', // builtin | anthropic | deepseek
   aiApiKey: '', aiModel: '',
+  qlibBridgeUrl: '', // Qlib 研究后端(bridge/qlib_bridge.py),如 http://127.0.0.1:9529
   watchlist: null, // null = 用默认
 };
 

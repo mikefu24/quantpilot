@@ -1,10 +1,11 @@
 // QuantPilot Service Worker —— 离线优先缓存
-const CACHE = 'quantpilot-v2';
+const CACHE = 'quantpilot-v3';
+// v3: Qlib 研究后端集成
 const CORE = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',
   'src/main.js', 'src/api.js',
   'src/core/store.js',
-  'src/data/feeds.js',
+  'src/data/feeds.js', 'src/data/qlib.js',
   'src/engine/indicators.js', 'src/engine/factors.js', 'src/engine/strategies.js', 'src/engine/backtest.js', 'src/engine/ml.js',
   'src/trade/paper.js', 'src/trade/brokers.js', 'src/trade/notify.js',
   'src/ai/berkshire.js',

@@ -5,6 +5,7 @@ import { runBacktest } from '../engine/backtest.js';
 import { rankFactorsByIC, mineFactors, trainMLModel, mlSignalFn } from '../engine/ml.js';
 import { FACTOR_LIST } from '../engine/factors.js';
 import { fetchKlines, fetchQuotes, DEFAULT_WATCHLIST, marketOf } from '../data/feeds.js';
+import { qlibConfigured, qlibHealth, qlibTrain, qlibTopk, fromQlibCode } from '../data/qlib.js';
 import { getSettings, fmt, log } from '../core/store.js';
 import { placeOrder } from '../trade/brokers.js';
 import { paperBroker } from '../trade/paper.js';
@@ -24,9 +25,9 @@ export async function renderStrategy(root) {
   </div>`;
 
   const body = root.querySelector('#st-body');
-  const views = [renderBacktest, renderMining, renderML, renderBot];
+  const views = [renderBacktest, renderMining, renderML, renderQlib, renderBot];
   root.querySelector('#st-seg').appendChild(
-    segmented(['策略回测', '因子挖掘', 'ML 训练', '自动机器人'], i => views[i](body, wl), 0));
+    segmented(['策略回测', '因子挖掘', 'ML 训练', 'Qlib', '自动机器人'], i => views[i](body, wl), 0));
   views[0](body, wl);
   return () => { };
 }
@@ -162,7 +163,76 @@ function renderML(body, wl) {
   });
 }
 
-// ---------- 4. 自动交易机器人 ----------
+// ---------- 4. Qlib 研究后端 ----------
+function renderQlib(body) {
+  if (!qlibConfigured()) {
+    body.innerHTML = `<div class="card">
+      <div class="card-title">Qlib 研究后端(Alpha158 + LightGBM)</div>
+      <div class="muted">未配置。在本机运行 <span class="mono">python bridge/qlib_bridge.py</span>,
+      然后到「设置 → AI 引擎」填入地址(默认 <span class="mono">http://127.0.0.1:9529</span>)。</div></div>`;
+    return;
+  }
+  body.innerHTML = `
+    <div class="card">
+      <div class="card-title">Qlib 研究后端 <span class="badge" id="ql-status">检测中…</span></div>
+      <div class="row">
+        <button class="btn b-ghost" id="ql-train">🏋️ 训练模型(csi300,数分钟)</button>
+        <button class="btn" id="ql-topk">📊 查看 TopK 选股</button>
+      </div>
+      <div class="muted" style="margin-top:8px">训练在你本机的 Python 进程中执行;TopK 为模型最新截面评分最高的股票,可一键模拟买入验证。</div>
+    </div>
+    <div id="ql-out"></div>`;
+
+  const status = body.querySelector('#ql-status');
+  qlibHealth().then(h => {
+    status.textContent = h.ready ? '模型就绪' : '在线·未训练';
+    status.className = 'badge ' + (h.ready ? 'b-green' : 'b-orange');
+  }).catch(() => { status.textContent = '不可达'; status.className = 'badge b-red'; });
+
+  const out = body.querySelector('#ql-out');
+
+  body.querySelector('#ql-train').addEventListener('click', async () => {
+    out.innerHTML = '<div class="card muted">训练中(Alpha158 特征 + LightGBM,请耐心等待)…</div>';
+    try {
+      const r = await qlibTrain({});
+      out.innerHTML = r.ok
+        ? `<div class="card"><div class="card-title">训练完成</div>
+           <div class="grid3">
+             <div class="kpi"><div class="v">${r.samples}</div><div class="l">预测样本</div></div>
+             <div class="kpi"><div class="v">${r.universe}</div><div class="l">股票池</div></div>
+             <div class="kpi"><div class="v">${r.asof}</div><div class="l">截面日期</div></div>
+           </div></div>`
+        : `<div class="card"><span class="neg">训练失败:${esc(r.msg)}</span></div>`;
+      renderQlib(body);
+    } catch (e) { out.innerHTML = `<div class="card"><span class="neg">后端不可达:${esc(e.message)}</span></div>`; }
+  });
+
+  body.querySelector('#ql-topk').addEventListener('click', async () => {
+    out.innerHTML = '<div class="card muted">获取 TopK…</div>';
+    try {
+      const r = await qlibTopk(10);
+      if (!r.ok) { out.innerHTML = `<div class="card muted">${esc(r.msg)}</div>`; return; }
+      out.innerHTML = `<div class="card"><div class="card-title">Qlib TopK 选股(评分降序)</div>
+        <table class="tbl"><tr><th>代码</th><th>评分</th><th></th></tr>
+        ${r.top.map(t => `<tr><td class="mono">${esc(t.symbol)}</td>
+          <td class="${t.score > 0 ? 'pos' : 'neg'}">${t.score.toFixed(4)}</td>
+          <td><button class="btn b-ghost b-sm" data-qbuy="${fromQlibCode(t.symbol)}">模拟买入</button></td></tr>`).join('')}
+        </table>
+        <div class="muted" style="margin-top:8px">注意:评分基于桥接端数据(官方示例数据截止 2020-09,仅验证链路;实盘信号请换新数据源)。</div></div>`;
+      out.querySelector('table').addEventListener('click', async e => {
+        const sym = e.target.dataset?.qbuy;
+        if (!sym) return;
+        const q = await fetchQuotes([sym]);
+        const px = q[sym]?.price;
+        if (!px) return toast('拿不到 ' + sym + ' 的价格');
+        const res = await placeOrder({ symbol: sym, name: q[sym]?.name || sym, side: 'BUY', qty: 100, price: px });
+        toast(res.msg);
+      });
+    } catch (e) { out.innerHTML = `<div class="card"><span class="neg">后端不可达:${esc(e.message)}</span></div>`; }
+  });
+}
+
+// ---------- 5. 自动交易机器人 ----------
 function renderBot(body, wl) {
   const running = botRunning();
   body.innerHTML = `

@@ -57,6 +57,7 @@ export async function renderSettings(root) {
         </select></div>
       ${f('st-aikey', 'API Key', s.aiApiKey, 'sk-...', 'password')}
       ${f('st-aimodel', '模型(留空用默认)', s.aiModel, 'claude-sonnet-4-5 / deepseek-chat')}
+      ${f('st-qlib', 'Qlib 研究后端地址(bridge/qlib_bridge.py)', s.qlibBridgeUrl, 'http://127.0.0.1:9529')}
     </div>
 
     <div class="card">
@@ -96,6 +97,7 @@ export async function renderSettings(root) {
       activeBroker: v('st-broker'),
       qmtBridgeUrl: v('st-qmt'), qmtBridgeToken: v('st-qmtToken'), thsBridgeUrl: v('st-ths'),
       aiProvider: v('st-ai'), aiApiKey: v('st-aikey'), aiModel: v('st-aimodel'),
+      qlibBridgeUrl: v('st-qlib'),
       feishuWebhook: v('st-feishu'), wecomWebhook: v('st-wecom'), serverChanKey: v('st-sc'),
       emailWebhook: v('st-mailhook'), emailTo: v('st-mailto'),
       pmPrivateKey: v('st-pmkey'),
