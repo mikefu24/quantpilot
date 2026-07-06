@@ -7,3 +7,6 @@ config.yaml
 src-tauri/target/
 src-tauri/gen/
 src-tauri/icons/
+mlruns/
+Users/
+bridge/.venv/
